@@ -40,33 +40,14 @@ jobs:
             echo "Tag does not exist, will create release"
           fi
 
-  build:
+  build-and-release:
     needs: get-version
     if: needs.get-version.outputs.tag_exists == 'false'
-    strategy:
-      fail-fast: false
-      matrix:
-        target:
-          - arch: x86-windows
-            suffix: .exe
-            name: windows-x86
-          - arch: x86_64-windows
-            suffix: .exe
-            name: windows-x64
-          - arch: aarch64-windows
-            suffix: .exe
-            name: windows-arm64
-        optimize:
-          - flag: ReleaseFast
-            label: fast
-          - flag: ReleaseSafe
-            label: safe
-          - flag: ReleaseSmall
-            label: small
-
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Install Zig
         run: |
@@ -89,48 +70,48 @@ jobs:
           "
           fi
 
-      - name: Build binary
-        run: |
-          OUTPUT_NAME="mouse-tracker-${{ matrix.target.name }}-${{ matrix.optimize.label }}${{ matrix.target.suffix }}"
-
-          echo "Building ${OUTPUT_NAME} (target=${{ matrix.target.arch }}, optimize=${{ matrix.optimize.flag }})"
-
-          zig build -Dtarget=${{ matrix.target.arch }} -Doptimize=${{ matrix.optimize.flag }}
-
-          cp zig-out/bin/mouse-tracker${{ matrix.target.suffix }} "${OUTPUT_NAME}"
-
-          ls -lh "${OUTPUT_NAME}"
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: mouse-tracker-${{ matrix.target.name }}-${{ matrix.optimize.label }}
-          path: mouse-tracker-${{ matrix.target.name }}-${{ matrix.optimize.label }}${{ matrix.target.suffix }}
-          retention-days: 7
-
-  release:
-    needs: [get-version, build]
-    if: always() && needs.get-version.outputs.tag_exists == 'false' && needs.build.result == 'success'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-
-      - name: Prepare release files
+      - name: Build all variants
         run: |
           mkdir -p release
-          find artifacts -type f -name "mouse-tracker-*" -exec mv {} release/ \;
-          cd release
 
+          TARGETS="x86-windows x86_64-windows aarch64-windows"
+          OPTIMIZES="ReleaseFast ReleaseSafe ReleaseSmall"
+          LABELS_x86_windows="windows-x86"
+          LABELS_x86_64_windows="windows-x64"
+          LABELS_aarch64_windows="windows-arm64"
+          LABELS_ReleaseFast="fast"
+          LABELS_ReleaseSafe="safe"
+          LABELS_ReleaseSmall="small"
+
+          for target in $TARGETS; do
+            # 取架构标签
+            target_key=$(echo "$target" | tr '-' '_')
+            eval arch_label=\$LABELS_${target_key}
+
+            for opt in $OPTIMIZES; do
+              eval opt_label=\$LABELS_${opt}
+              output_name="mouse-tracker-${arch_label}-${opt_label}.exe"
+
+              echo "=========================================="
+              echo "Building: ${output_name}"
+              echo "  Target: ${target}"
+              echo "  Optimize: ${opt}"
+              echo "=========================================="
+
+              zig build -Dtarget=${target} -Doptimize=${opt}
+
+              cp zig-out/bin/mouse-tracker.exe "release/${output_name}"
+
+              echo "Built: $(ls -lh release/${output_name} | awk '{print $5}') ${output_name}"
+              echo ""
+            done
+          done
+
+          cd release
           sha256sum * > checksums.txt
 
-          echo "Release files:"
+          echo ""
+          echo "All release files:"
           ls -lh
           echo ""
           echo "Checksums:"
