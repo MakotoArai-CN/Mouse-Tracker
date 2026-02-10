@@ -47,32 +47,29 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
-            target: x86-windows
+          - target: x86-windows
             suffix: .exe
             name: windows-x86
-          - os: ubuntu-latest
-            target: x86_64-windows
+          - target: x86_64-windows
             suffix: .exe
             name: windows-x64
-          - os: ubuntu-latest
-            target: aarch64-windows
+          - target: aarch64-windows
             suffix: .exe
             name: windows-arm64
 
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Zig
-        uses: mlugg/setup-zig@v1
-        with:
-          version: 0.14.1
+      - name: Install Zig
+        run: |
+          sudo snap install zig --classic --beta
+          zig version
 
       - name: Prepare icon
         run: |
-          if [ ! -f resources/icon.ico ] && [ -f resources/icon.png ]; then
-            echo "Warning: icon.ico not found, creating placeholder"
+          if [ ! -f resources/icon.ico ]; then
+            echo "icon.ico not found, creating placeholder"
             python3 -c "
           import struct
           header = struct.pack('<HHH', 0, 1, 1)
