@@ -25,7 +25,7 @@ jobs:
       - name: Get version from build.zig.zon
         id: get_version
         run: |
-          VERSION=$(grep '.version = ' build.zig.zon | sed 's/.*"\(.*\)"/\1/')
+          VERSION=$(grep '\.version\s*=' build.zig.zon | grep -v minimum_zig_version | head -1 | sed 's/.*"\(.*\)"/\1/')
           echo "version=v${VERSION}" >> $GITHUB_OUTPUT
           echo "Detected version: v${VERSION}"
 
@@ -73,17 +73,12 @@ jobs:
         run: |
           if [ ! -f resources/icon.ico ] && [ -f resources/icon.png ]; then
             echo "Warning: icon.ico not found, creating placeholder"
-            # 创建最小有效ICO文件（16x16空白）
             python3 -c "
           import struct
-          # ICO header: reserved=0, type=1(icon), count=1
           header = struct.pack('<HHH', 0, 1, 1)
-          # Directory entry: 16x16, 0 colors, 0 reserved, 1 plane, 32bpp
-          bmp_size = 40 + 16*16*4  # BITMAPINFOHEADER + pixel data
+          bmp_size = 40 + 16*16*4
           dir_entry = struct.pack('<BBBBHHIH', 16, 16, 0, 0, 1, 32, bmp_size, 22)
-          # BITMAPINFOHEADER
           bih = struct.pack('<IiiHHIIiiII', 40, 16, 32, 1, 32, 0, 16*16*4, 0, 0, 0, 0)
-          # Pixel data (transparent)
           pixels = b'\x00' * (16*16*4)
           with open('resources/icon.ico', 'wb') as f:
               f.write(header + dir_entry + bih + pixels)
@@ -129,7 +124,6 @@ jobs:
           find artifacts -type f -name "mouse-tracker-*" -exec mv {} release/ \;
           cd release
 
-          # Create checksums
           sha256sum * > checksums.txt
 
           echo "Release files:"
