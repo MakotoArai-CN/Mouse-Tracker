@@ -195,7 +195,7 @@ loadAppIcon        - アプリケーションアイコンを読み込み
 
 ## ライセンス
 
-MIT License
+AGPLv3 License
 
 ## プロジェクトリンク
 

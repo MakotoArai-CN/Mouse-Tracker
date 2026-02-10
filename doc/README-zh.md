@@ -194,7 +194,7 @@ loadAppIcon        - 加载应用图标
 
 ## 许可证
 
-MIT License
+AGPLv3 License
 
 ## 项目地址
 
