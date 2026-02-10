@@ -8,16 +8,19 @@ pub fn build(b: *std.Build) void {
     });
     const optimize = b.standardOptimizeOption(.{});
 
-    const exe = b.addExecutable(.{
-        .name = "mouse-tracker",
+    const root_module = b.createModule(.{
         .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
     });
 
+    const exe = b.addExecutable(.{
+        .name = "mouse-tracker",
+        .root_module = root_module,
+    });
+
     exe.subsystem = .Windows;
 
-    // Embed Windows resource (icon)
     exe.addWin32ResourceFile(.{
         .file = b.path("resources/resource.rc"),
     });
@@ -37,11 +40,15 @@ pub fn build(b: *std.Build) void {
     run_step.dependOn(&run_cmd.step);
 
     // Release step
-    const release_exe = b.addExecutable(.{
-        .name = "mouse-tracker",
+    const release_module = b.createModule(.{
         .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = .ReleaseSmall,
+    });
+
+    const release_exe = b.addExecutable(.{
+        .name = "mouse-tracker",
+        .root_module = release_module,
     });
 
     release_exe.subsystem = .Windows;

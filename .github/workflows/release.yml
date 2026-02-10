@@ -46,16 +46,23 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - target: x86-windows
+        target:
+          - arch: x86-windows
             suffix: .exe
             name: windows-x86
-          - target: x86_64-windows
+          - arch: x86_64-windows
             suffix: .exe
             name: windows-x64
-          - target: aarch64-windows
+          - arch: aarch64-windows
             suffix: .exe
             name: windows-arm64
+        optimize:
+          - flag: ReleaseFast
+            label: fast
+          - flag: ReleaseSafe
+            label: safe
+          - flag: ReleaseSmall
+            label: small
 
     runs-on: ubuntu-latest
     steps:
@@ -84,21 +91,21 @@ jobs:
 
       - name: Build binary
         run: |
-          OUTPUT_NAME="mouse-tracker-${{ matrix.name }}${{ matrix.suffix }}"
+          OUTPUT_NAME="mouse-tracker-${{ matrix.target.name }}-${{ matrix.optimize.label }}${{ matrix.target.suffix }}"
 
-          echo "Building ${OUTPUT_NAME} for ${{ matrix.target }}"
+          echo "Building ${OUTPUT_NAME} (target=${{ matrix.target.arch }}, optimize=${{ matrix.optimize.flag }})"
 
-          zig build -Dtarget=${{ matrix.target }} -Doptimize=ReleaseSmall
+          zig build -Dtarget=${{ matrix.target.arch }} -Doptimize=${{ matrix.optimize.flag }}
 
-          cp zig-out/bin/mouse-tracker${{ matrix.suffix }} "${OUTPUT_NAME}"
+          cp zig-out/bin/mouse-tracker${{ matrix.target.suffix }} "${OUTPUT_NAME}"
 
           ls -lh "${OUTPUT_NAME}"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: mouse-tracker-${{ matrix.name }}
-          path: mouse-tracker-${{ matrix.name }}${{ matrix.suffix }}
+          name: mouse-tracker-${{ matrix.target.name }}-${{ matrix.optimize.label }}
+          path: mouse-tracker-${{ matrix.target.name }}-${{ matrix.optimize.label }}${{ matrix.target.suffix }}
           retention-days: 7
 
   release:
@@ -155,11 +162,37 @@ jobs:
             echo ""
             echo "## 📦 下载"
             echo ""
-            echo "| 平台 | 架构 | 下载 |"
-            echo "|:----:|:----:|:----:|"
-            echo "| ![Windows](https://img.shields.io/badge/Windows-0078D6?style=flat-square&logo=windows&logoColor=white) | x86 | [mouse-tracker-windows-x86.exe](${BASE_URL}/mouse-tracker-windows-x86.exe) |"
-            echo "| ![Windows](https://img.shields.io/badge/Windows-0078D6?style=flat-square&logo=windows&logoColor=white) | x64 | [mouse-tracker-windows-x64.exe](${BASE_URL}/mouse-tracker-windows-x64.exe) |"
-            echo "| ![Windows](https://img.shields.io/badge/Windows-0078D6?style=flat-square&logo=windows&logoColor=white) | ARM64 | [mouse-tracker-windows-arm64.exe](${BASE_URL}/mouse-tracker-windows-arm64.exe) |"
+            echo "### 版本说明"
+            echo ""
+            echo "| 类型 | 说明 | 适用场景 |"
+            echo "|:----:|------|---------|"
+            echo "| **fast** | 最大性能优化 | 追求最高帧率和响应速度 |"
+            echo "| **safe** | 保留运行时安全检查 | 日常使用（推荐） |"
+            echo "| **small** | 最小体积优化 | 磁盘空间有限 |"
+            echo ""
+            echo "### Windows x86 (32位)"
+            echo ""
+            echo "| 类型 | 下载 |"
+            echo "|:----:|:----:|"
+            echo "| fast | [mouse-tracker-windows-x86-fast.exe](${BASE_URL}/mouse-tracker-windows-x86-fast.exe) |"
+            echo "| safe | [mouse-tracker-windows-x86-safe.exe](${BASE_URL}/mouse-tracker-windows-x86-safe.exe) |"
+            echo "| small | [mouse-tracker-windows-x86-small.exe](${BASE_URL}/mouse-tracker-windows-x86-small.exe) |"
+            echo ""
+            echo "### Windows x64 (64位)"
+            echo ""
+            echo "| 类型 | 下载 |"
+            echo "|:----:|:----:|"
+            echo "| fast | [mouse-tracker-windows-x64-fast.exe](${BASE_URL}/mouse-tracker-windows-x64-fast.exe) |"
+            echo "| safe | [mouse-tracker-windows-x64-safe.exe](${BASE_URL}/mouse-tracker-windows-x64-safe.exe) |"
+            echo "| small | [mouse-tracker-windows-x64-small.exe](${BASE_URL}/mouse-tracker-windows-x64-small.exe) |"
+            echo ""
+            echo "### Windows ARM64"
+            echo ""
+            echo "| 类型 | 下载 |"
+            echo "|:----:|:----:|"
+            echo "| fast | [mouse-tracker-windows-arm64-fast.exe](${BASE_URL}/mouse-tracker-windows-arm64-fast.exe) |"
+            echo "| safe | [mouse-tracker-windows-arm64-safe.exe](${BASE_URL}/mouse-tracker-windows-arm64-safe.exe) |"
+            echo "| small | [mouse-tracker-windows-arm64-small.exe](${BASE_URL}/mouse-tracker-windows-arm64-small.exe) |"
             echo ""
             echo "📋 [checksums.txt](${BASE_URL}/checksums.txt) - SHA256 校验文件"
             echo ""
@@ -167,7 +200,7 @@ jobs:
             echo ""
             echo "## 🚀 使用方法"
             echo ""
-            echo "1. 下载对应平台的可执行文件"
+            echo "1. 根据系统架构和需求选择对应版本下载"
             echo "2. 双击运行即可"
             echo ""
             echo "### 快捷键"
