@@ -1,0 +1,214 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'build.zig.zon'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  get-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+      tag_exists: ${{ steps.check_tag.outputs.exists }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get version from build.zig.zon
+        id: get_version
+        run: |
+          VERSION=$(grep '.version = ' build.zig.zon | sed 's/.*"\(.*\)"/\1/')
+          echo "version=v${VERSION}" >> $GITHUB_OUTPUT
+          echo "Detected version: v${VERSION}"
+
+      - name: Check if tag exists
+        id: check_tag
+        run: |
+          if git rev-parse "${{ steps.get_version.outputs.version }}" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Tag already exists"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Tag does not exist, will create release"
+          fi
+
+  build:
+    needs: get-version
+    if: needs.get-version.outputs.tag_exists == 'false'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86-windows
+            suffix: .exe
+            name: windows-x86
+          - os: ubuntu-latest
+            target: x86_64-windows
+            suffix: .exe
+            name: windows-x64
+          - os: ubuntu-latest
+            target: aarch64-windows
+            suffix: .exe
+            name: windows-arm64
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Zig
+        uses: mlugg/setup-zig@v1
+        with:
+          version: 0.14.1
+
+      - name: Prepare icon
+        run: |
+          if [ ! -f resources/icon.ico ] && [ -f resources/icon.png ]; then
+            echo "Warning: icon.ico not found, creating placeholder"
+            # 创建最小有效ICO文件（16x16空白）
+            python3 -c "
+          import struct
+          # ICO header: reserved=0, type=1(icon), count=1
+          header = struct.pack('<HHH', 0, 1, 1)
+          # Directory entry: 16x16, 0 colors, 0 reserved, 1 plane, 32bpp
+          bmp_size = 40 + 16*16*4  # BITMAPINFOHEADER + pixel data
+          dir_entry = struct.pack('<BBBBHHIH', 16, 16, 0, 0, 1, 32, bmp_size, 22)
+          # BITMAPINFOHEADER
+          bih = struct.pack('<IiiHHIIiiII', 40, 16, 32, 1, 32, 0, 16*16*4, 0, 0, 0, 0)
+          # Pixel data (transparent)
+          pixels = b'\x00' * (16*16*4)
+          with open('resources/icon.ico', 'wb') as f:
+              f.write(header + dir_entry + bih + pixels)
+          "
+          fi
+
+      - name: Build binary
+        run: |
+          OUTPUT_NAME="mouse-tracker-${{ matrix.name }}${{ matrix.suffix }}"
+
+          echo "Building ${OUTPUT_NAME} for ${{ matrix.target }}"
+
+          zig build -Dtarget=${{ matrix.target }} -Doptimize=ReleaseSmall
+
+          cp zig-out/bin/mouse-tracker${{ matrix.suffix }} "${OUTPUT_NAME}"
+
+          ls -lh "${OUTPUT_NAME}"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mouse-tracker-${{ matrix.name }}
+          path: mouse-tracker-${{ matrix.name }}${{ matrix.suffix }}
+          retention-days: 7
+
+  release:
+    needs: [get-version, build]
+    if: always() && needs.get-version.outputs.tag_exists == 'false' && needs.build.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare release files
+        run: |
+          mkdir -p release
+          find artifacts -type f -name "mouse-tracker-*" -exec mv {} release/ \;
+          cd release
+
+          # Create checksums
+          sha256sum * > checksums.txt
+
+          echo "Release files:"
+          ls -lh
+          echo ""
+          echo "Checksums:"
+          cat checksums.txt
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$PREV_TAG" ]; then
+            COMMITS=$(git log --oneline --pretty=format:"- %s (%h)" | head -50)
+          else
+            COMMITS=$(git log ${PREV_TAG}..HEAD --oneline --pretty=format:"- %s (%h)")
+          fi
+
+          COMMITS=$(echo "$COMMITS" | sed 's/@\([a-zA-Z0-9_-]*\)/`@\1`/g')
+
+          VERSION="${{ needs.get-version.outputs.version }}"
+          REPO="${{ github.repository }}"
+          BASE_URL="https://github.com/${REPO}/releases/download/${VERSION}"
+
+          {
+            echo "CHANGELOG<<EOF"
+            echo "## 更新日志"
+            echo ""
+            echo "$COMMITS"
+            echo ""
+            echo "---"
+            echo ""
+            echo "## 📦 下载"
+            echo ""
+            echo "| 平台 | 架构 | 下载 |"
+            echo "|:----:|:----:|:----:|"
+            echo "| ![Windows](https://img.shields.io/badge/Windows-0078D6?style=flat-square&logo=windows&logoColor=white) | x86 | [mouse-tracker-windows-x86.exe](${BASE_URL}/mouse-tracker-windows-x86.exe) |"
+            echo "| ![Windows](https://img.shields.io/badge/Windows-0078D6?style=flat-square&logo=windows&logoColor=white) | x64 | [mouse-tracker-windows-x64.exe](${BASE_URL}/mouse-tracker-windows-x64.exe) |"
+            echo "| ![Windows](https://img.shields.io/badge/Windows-0078D6?style=flat-square&logo=windows&logoColor=white) | ARM64 | [mouse-tracker-windows-arm64.exe](${BASE_URL}/mouse-tracker-windows-arm64.exe) |"
+            echo ""
+            echo "📋 [checksums.txt](${BASE_URL}/checksums.txt) - SHA256 校验文件"
+            echo ""
+            echo "---"
+            echo ""
+            echo "## 🚀 使用方法"
+            echo ""
+            echo "1. 下载对应平台的可执行文件"
+            echo "2. 双击运行即可"
+            echo ""
+            echo "### 快捷键"
+            echo ""
+            echo "| 快捷键 | 功能 |"
+            echo "|--------|------|"
+            echo "| **Space** | 锁定/解锁坐标（锁定时自动复制） |"
+            echo "| **C** | 复制当前坐标到剪贴板 |"
+            echo "| **Ctrl+M** | 切换紧凑/完整UI模式 |"
+            echo "| **F** | 切换窗口跟随/固定模式 |"
+            echo "| **Ctrl+H** | 全局显示/隐藏窗口 |"
+            echo ""
+            echo "### 托盘菜单"
+            echo ""
+            echo "关闭窗口后应用最小化到系统托盘，右键托盘图标可选择："
+            echo ""
+            echo "- 显示/隐藏窗口"
+            echo "- 锁定/解锁坐标"
+            echo "- 跟随/固定窗口"
+            echo "- 关于(GitHub)"
+            echo "- 退出"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.get-version.outputs.version }}
+          name: Mouse Tracker ${{ needs.get-version.outputs.version }}
+          body: ${{ steps.changelog.outputs.CHANGELOG }}
+          draft: false
+          prerelease: false
+          files: release/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

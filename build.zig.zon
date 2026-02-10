@@ -1,0 +1,15 @@
+.{
+    .name = .mouse_tracker,
+    .version = "0.1.0",
+    .fingerprint = 0x259b1fa1f0ddca37,
+    .minimum_zig_version = "0.15.0",
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+        "resources",
+        "README.md",
+        "CHANGELOG.md",
+        "LICENSE",
+    },
+}
