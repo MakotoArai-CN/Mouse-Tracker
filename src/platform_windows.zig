@@ -9,7 +9,6 @@ const UINT = windows.UINT;
 const WPARAM = windows.WPARAM;
 const LPARAM = windows.LPARAM;
 const LRESULT = windows.LRESULT;
-const CALLBACK = windows.WINAPI;
 const INT = i32;
 const LPCSTR = [*:0]const u8;
 const LPCWSTR = [*:0]const u16;
@@ -17,6 +16,8 @@ const DWORD = u32;
 const BOOL = windows.BOOL;
 const HINSTANCE = windows.HINSTANCE;
 const HICON = *anyopaque;
+
+const WINAPI = std.builtin.CallingConvention.winapi;
 
 const POINT = extern struct {
     x: INT = 0,
@@ -77,29 +78,29 @@ const SW_SHOW: INT = 5;
 // ============================================================================
 // Windows API
 // ============================================================================
-extern "shell32" fn Shell_NotifyIconW(dwMessage: UINT, pnid: *const NOTIFYICONDATAW) callconv(CALLBACK) BOOL;
-extern "shell32" fn ShellExecuteW(hwnd: ?HWND, lpOperation: ?LPCWSTR, lpFile: ?LPCWSTR, lpParameters: ?LPCWSTR, lpDirectory: ?LPCWSTR, nShowCmd: INT) callconv(CALLBACK) ?*anyopaque;
+extern "shell32" fn Shell_NotifyIconW(dwMessage: UINT, pnid: *const NOTIFYICONDATAW) callconv(WINAPI) BOOL;
+extern "shell32" fn ShellExecuteW(hwnd: ?HWND, lpOperation: ?LPCWSTR, lpFile: ?LPCWSTR, lpParameters: ?LPCWSTR, lpDirectory: ?LPCWSTR, nShowCmd: INT) callconv(WINAPI) ?*anyopaque;
 
-extern "user32" fn SetForegroundWindow(hWnd: ?HWND) callconv(CALLBACK) BOOL;
-extern "user32" fn CreatePopupMenu() callconv(CALLBACK) ?windows.HMENU;
-extern "user32" fn DestroyMenu(hMenu: ?windows.HMENU) callconv(CALLBACK) BOOL;
-extern "user32" fn AppendMenuW(hMenu: ?windows.HMENU, uFlags: UINT, uIDNewItem: usize, lpNewItem: ?LPCWSTR) callconv(CALLBACK) BOOL;
-extern "user32" fn TrackPopupMenu(hMenu: ?windows.HMENU, uFlags: UINT, x: INT, y: INT, nReserved: INT, hWnd: HWND, prcRect: ?*const anyopaque) callconv(CALLBACK) BOOL;
-extern "user32" fn GetCursorPos(pt: *POINT) callconv(CALLBACK) BOOL;
-extern "user32" fn PostMessageA(hWnd: ?HWND, Msg: UINT, wParam: WPARAM, lParam: LPARAM) callconv(CALLBACK) BOOL;
-extern "user32" fn LoadImageA(hInst: ?HINSTANCE, name: LPCSTR, img_type: UINT, cx: INT, cy: INT, fuLoad: UINT) callconv(CALLBACK) ?HICON;
-extern "user32" fn IsWindowVisible(hWnd: HWND) callconv(CALLBACK) BOOL;
+extern "user32" fn SetForegroundWindow(hWnd: ?HWND) callconv(WINAPI) BOOL;
+extern "user32" fn CreatePopupMenu() callconv(WINAPI) ?windows.HMENU;
+extern "user32" fn DestroyMenu(hMenu: ?windows.HMENU) callconv(WINAPI) BOOL;
+extern "user32" fn AppendMenuW(hMenu: ?windows.HMENU, uFlags: UINT, uIDNewItem: usize, lpNewItem: ?LPCWSTR) callconv(WINAPI) BOOL;
+extern "user32" fn TrackPopupMenu(hMenu: ?windows.HMENU, uFlags: UINT, x: INT, y: INT, nReserved: INT, hWnd: HWND, prcRect: ?*const anyopaque) callconv(WINAPI) BOOL;
+extern "user32" fn GetCursorPos(pt: *POINT) callconv(WINAPI) BOOL;
+extern "user32" fn PostMessageA(hWnd: ?HWND, Msg: UINT, wParam: WPARAM, lParam: LPARAM) callconv(WINAPI) BOOL;
+extern "user32" fn LoadImageA(hInst: ?HINSTANCE, name: LPCSTR, img_type: UINT, cx: INT, cy: INT, fuLoad: UINT) callconv(WINAPI) ?HICON;
+extern "user32" fn IsWindowVisible(hWnd: HWND) callconv(WINAPI) BOOL;
 
-extern "user32" fn OpenClipboard(hWndNewOwner: ?HWND) callconv(CALLBACK) BOOL;
-extern "user32" fn CloseClipboard() callconv(CALLBACK) BOOL;
-extern "user32" fn EmptyClipboard() callconv(CALLBACK) BOOL;
-extern "user32" fn SetClipboardData(uFormat: UINT, hMem: ?windows.HANDLE) callconv(CALLBACK) ?windows.HANDLE;
+extern "user32" fn OpenClipboard(hWndNewOwner: ?HWND) callconv(WINAPI) BOOL;
+extern "user32" fn CloseClipboard() callconv(WINAPI) BOOL;
+extern "user32" fn EmptyClipboard() callconv(WINAPI) BOOL;
+extern "user32" fn SetClipboardData(uFormat: UINT, hMem: ?windows.HANDLE) callconv(WINAPI) ?windows.HANDLE;
 
-extern "kernel32" fn GlobalAlloc(uFlags: DWORD, dwBytes: usize) callconv(CALLBACK) ?windows.HANDLE;
-extern "kernel32" fn GlobalFree(hMem: ?windows.HANDLE) callconv(CALLBACK) ?windows.HANDLE;
-extern "kernel32" fn GlobalLock(hMem: windows.HANDLE) callconv(CALLBACK) ?*anyopaque;
-extern "kernel32" fn GlobalUnlock(hMem: windows.HANDLE) callconv(CALLBACK) BOOL;
-extern "kernel32" fn GetModuleHandleW(lpModuleName: ?LPCWSTR) callconv(CALLBACK) ?HINSTANCE;
+extern "kernel32" fn GlobalAlloc(uFlags: DWORD, dwBytes: usize) callconv(WINAPI) ?windows.HANDLE;
+extern "kernel32" fn GlobalFree(hMem: ?windows.HANDLE) callconv(WINAPI) ?windows.HANDLE;
+extern "kernel32" fn GlobalLock(hMem: windows.HANDLE) callconv(WINAPI) ?*anyopaque;
+extern "kernel32" fn GlobalUnlock(hMem: windows.HANDLE) callconv(WINAPI) BOOL;
+extern "kernel32" fn GetModuleHandleW(lpModuleName: ?LPCWSTR) callconv(WINAPI) ?HINSTANCE;
 
 // ============================================================================
 // Global State

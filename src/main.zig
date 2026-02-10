@@ -35,14 +35,15 @@ const LONG = windows.LONG;
 const BYTE = windows.BYTE;
 const LPVOID = windows.LPVOID;
 const UINT_PTR = usize;
-const TIMERPROC = ?*const fn (HWND, UINT, UINT_PTR, DWORD) callconv(CALLBACK) void;
+const TIMERPROC = ?*const fn (HWND, UINT, UINT_PTR, DWORD) callconv(WINAPI) void;
 const INT = i32;
 const COLORREF = DWORD;
-const CALLBACK = windows.WINAPI;
 const LPCSTR = [*:0]const u8;
 const LPSTR = [*:0]u8;
 const LPCWSTR = [*:0]const u16;
 const LPWSTR = [*:0]u16;
+
+const WINAPI = std.builtin.CallingConvention.winapi;
 
 const POINT = extern struct {
     x: LONG = 0,
@@ -195,7 +196,7 @@ const DEVMODEA = extern struct {
     dmPanningHeight: DWORD = 0,
 };
 
-const WNDPROC = *const fn (HWND, UINT, WPARAM, LPARAM) callconv(CALLBACK) LRESULT;
+const WNDPROC = *const fn (HWND, UINT, WPARAM, LPARAM) callconv(WINAPI) LRESULT;
 
 // ============================================================================
 // Windows API Constants
@@ -308,72 +309,72 @@ const HOTKEY_ID_TOGGLE_VISIBLE: INT = 1;
 // ============================================================================
 // Windows API Function Imports
 // ============================================================================
-extern "user32" fn RegisterClassExA(*const WNDCLASSEXA) callconv(CALLBACK) u16;
-extern "user32" fn CreateWindowExA(DWORD, LPCSTR, LPCSTR, DWORD, INT, INT, INT, INT, ?HWND, ?HMENU, ?HINSTANCE, ?LPVOID) callconv(CALLBACK) ?HWND;
-extern "user32" fn ShowWindow(HWND, INT) callconv(CALLBACK) BOOL;
-extern "user32" fn UpdateWindow(HWND) callconv(CALLBACK) BOOL;
-extern "user32" fn GetMessageA(*MSG, ?HWND, UINT, UINT) callconv(CALLBACK) BOOL;
-extern "user32" fn TranslateMessage(*const MSG) callconv(CALLBACK) BOOL;
-extern "user32" fn DispatchMessageA(*const MSG) callconv(CALLBACK) LRESULT;
-extern "user32" fn DefWindowProcA(HWND, UINT, WPARAM, LPARAM) callconv(CALLBACK) LRESULT;
-extern "user32" fn DestroyWindow(HWND) callconv(CALLBACK) BOOL;
-extern "user32" fn PostQuitMessage(INT) callconv(CALLBACK) void;
-extern "user32" fn SetTimer(HWND, UINT_PTR, UINT, TIMERPROC) callconv(CALLBACK) UINT_PTR;
-extern "user32" fn KillTimer(HWND, UINT_PTR) callconv(CALLBACK) BOOL;
-extern "user32" fn GetCursorPos(*POINT) callconv(CALLBACK) BOOL;
-extern "user32" fn GetSystemMetrics(INT) callconv(CALLBACK) INT;
-extern "user32" fn GetClientRect(HWND, *RECT) callconv(CALLBACK) BOOL;
-extern "user32" fn GetWindowRect(HWND, *RECT) callconv(CALLBACK) BOOL;
-extern "user32" fn InvalidateRect(?HWND, ?*const RECT, BOOL) callconv(CALLBACK) BOOL;
-extern "user32" fn BeginPaint(HWND, *PAINTSTRUCT) callconv(CALLBACK) ?HDC;
-extern "user32" fn EndPaint(HWND, *const PAINTSTRUCT) callconv(CALLBACK) BOOL;
-extern "user32" fn GetDC(?HWND) callconv(CALLBACK) ?HDC;
-extern "user32" fn ReleaseDC(?HWND, HDC) callconv(CALLBACK) INT;
-extern "user32" fn LoadIconA(?HINSTANCE, LPCSTR) callconv(CALLBACK) ?HICON;
-extern "user32" fn LoadCursorA(?HINSTANCE, LPCSTR) callconv(CALLBACK) ?HCURSOR;
-extern "user32" fn SetWindowPos(HWND, ?HWND, INT, INT, INT, INT, UINT) callconv(CALLBACK) BOOL;
-extern "user32" fn FillRect(HDC, *const RECT, HBRUSH) callconv(CALLBACK) INT;
-extern "user32" fn DrawTextA(HDC, [*]const u8, INT, *RECT, UINT) callconv(CALLBACK) INT;
-extern "user32" fn DrawTextW(HDC, LPCWSTR, INT, *RECT, UINT) callconv(CALLBACK) INT;
-extern "kernel32" fn MultiByteToWideChar(CodePage: UINT, dwFlags: DWORD, lpMultiByteStr: [*]const u8, cbMultiByte: INT, lpWideCharStr: ?LPWSTR, cchWideChar: INT) callconv(CALLBACK) INT;
-extern "user32" fn SendMessageA(HWND, UINT, WPARAM, LPARAM) callconv(CALLBACK) LRESULT;
-extern "user32" fn ReleaseCapture() callconv(CALLBACK) BOOL;
-extern "user32" fn SetLayeredWindowAttributes(HWND, COLORREF, BYTE, DWORD) callconv(CALLBACK) BOOL;
-extern "user32" fn EnumDisplaySettingsA(?LPCSTR, DWORD, *DEVMODEA) callconv(CALLBACK) BOOL;
-extern "user32" fn ScreenToClient(HWND, *POINT) callconv(CALLBACK) BOOL;
-extern "user32" fn SetCapture(HWND) callconv(CALLBACK) ?HWND;
-extern "user32" fn IsWindowVisible(HWND) callconv(CALLBACK) BOOL;
-extern "user32" fn GetKeyState(nVirtKey: INT) callconv(CALLBACK) i16;
-extern "user32" fn RegisterHotKey(hWnd: ?HWND, id: INT, fsModifiers: UINT, vk: UINT) callconv(CALLBACK) BOOL;
-extern "user32" fn UnregisterHotKey(hWnd: ?HWND, id: INT) callconv(CALLBACK) BOOL;
+extern "user32" fn RegisterClassExA(*const WNDCLASSEXA) callconv(WINAPI) u16;
+extern "user32" fn CreateWindowExA(DWORD, LPCSTR, LPCSTR, DWORD, INT, INT, INT, INT, ?HWND, ?HMENU, ?HINSTANCE, ?LPVOID) callconv(WINAPI) ?HWND;
+extern "user32" fn ShowWindow(HWND, INT) callconv(WINAPI) BOOL;
+extern "user32" fn UpdateWindow(HWND) callconv(WINAPI) BOOL;
+extern "user32" fn GetMessageA(*MSG, ?HWND, UINT, UINT) callconv(WINAPI) BOOL;
+extern "user32" fn TranslateMessage(*const MSG) callconv(WINAPI) BOOL;
+extern "user32" fn DispatchMessageA(*const MSG) callconv(WINAPI) LRESULT;
+extern "user32" fn DefWindowProcA(HWND, UINT, WPARAM, LPARAM) callconv(WINAPI) LRESULT;
+extern "user32" fn DestroyWindow(HWND) callconv(WINAPI) BOOL;
+extern "user32" fn PostQuitMessage(INT) callconv(WINAPI) void;
+extern "user32" fn SetTimer(HWND, UINT_PTR, UINT, TIMERPROC) callconv(WINAPI) UINT_PTR;
+extern "user32" fn KillTimer(HWND, UINT_PTR) callconv(WINAPI) BOOL;
+extern "user32" fn GetCursorPos(*POINT) callconv(WINAPI) BOOL;
+extern "user32" fn GetSystemMetrics(INT) callconv(WINAPI) INT;
+extern "user32" fn GetClientRect(HWND, *RECT) callconv(WINAPI) BOOL;
+extern "user32" fn GetWindowRect(HWND, *RECT) callconv(WINAPI) BOOL;
+extern "user32" fn InvalidateRect(?HWND, ?*const RECT, BOOL) callconv(WINAPI) BOOL;
+extern "user32" fn BeginPaint(HWND, *PAINTSTRUCT) callconv(WINAPI) ?HDC;
+extern "user32" fn EndPaint(HWND, *const PAINTSTRUCT) callconv(WINAPI) BOOL;
+extern "user32" fn GetDC(?HWND) callconv(WINAPI) ?HDC;
+extern "user32" fn ReleaseDC(?HWND, HDC) callconv(WINAPI) INT;
+extern "user32" fn LoadIconA(?HINSTANCE, LPCSTR) callconv(WINAPI) ?HICON;
+extern "user32" fn LoadCursorA(?HINSTANCE, LPCSTR) callconv(WINAPI) ?HCURSOR;
+extern "user32" fn SetWindowPos(HWND, ?HWND, INT, INT, INT, INT, UINT) callconv(WINAPI) BOOL;
+extern "user32" fn FillRect(HDC, *const RECT, HBRUSH) callconv(WINAPI) INT;
+extern "user32" fn DrawTextA(HDC, [*]const u8, INT, *RECT, UINT) callconv(WINAPI) INT;
+extern "user32" fn DrawTextW(HDC, LPCWSTR, INT, *RECT, UINT) callconv(WINAPI) INT;
+extern "kernel32" fn MultiByteToWideChar(CodePage: UINT, dwFlags: DWORD, lpMultiByteStr: [*]const u8, cbMultiByte: INT, lpWideCharStr: ?LPWSTR, cchWideChar: INT) callconv(WINAPI) INT;
+extern "user32" fn SendMessageA(HWND, UINT, WPARAM, LPARAM) callconv(WINAPI) LRESULT;
+extern "user32" fn ReleaseCapture() callconv(WINAPI) BOOL;
+extern "user32" fn SetLayeredWindowAttributes(HWND, COLORREF, BYTE, DWORD) callconv(WINAPI) BOOL;
+extern "user32" fn EnumDisplaySettingsA(?LPCSTR, DWORD, *DEVMODEA) callconv(WINAPI) BOOL;
+extern "user32" fn ScreenToClient(HWND, *POINT) callconv(WINAPI) BOOL;
+extern "user32" fn SetCapture(HWND) callconv(WINAPI) ?HWND;
+extern "user32" fn IsWindowVisible(HWND) callconv(WINAPI) BOOL;
+extern "user32" fn GetKeyState(nVirtKey: INT) callconv(WINAPI) i16;
+extern "user32" fn RegisterHotKey(hWnd: ?HWND, id: INT, fsModifiers: UINT, vk: UINT) callconv(WINAPI) BOOL;
+extern "user32" fn UnregisterHotKey(hWnd: ?HWND, id: INT) callconv(WINAPI) BOOL;
 
-extern "gdi32" fn CreateCompatibleDC(?HDC) callconv(CALLBACK) ?HDC;
-extern "gdi32" fn CreateCompatibleBitmap(HDC, INT, INT) callconv(CALLBACK) ?HBITMAP;
-extern "gdi32" fn SelectObject(HDC, *GdiHandle) callconv(CALLBACK) ?HGDIOBJ;
-extern "gdi32" fn DeleteObject(*GdiHandle) callconv(CALLBACK) BOOL;
-extern "gdi32" fn DeleteDC(HDC) callconv(CALLBACK) BOOL;
-extern "gdi32" fn BitBlt(HDC, INT, INT, INT, INT, HDC, INT, INT, DWORD) callconv(CALLBACK) BOOL;
-extern "gdi32" fn CreateSolidBrush(COLORREF) callconv(CALLBACK) ?HBRUSH;
-extern "gdi32" fn CreatePen(INT, INT, COLORREF) callconv(CALLBACK) ?HPEN;
-extern "gdi32" fn CreateFontIndirectA(*const LOGFONTA) callconv(CALLBACK) ?HFONT;
-extern "gdi32" fn SetBkMode(HDC, INT) callconv(CALLBACK) INT;
-extern "gdi32" fn SetTextColor(HDC, COLORREF) callconv(CALLBACK) COLORREF;
-extern "gdi32" fn Rectangle(HDC, INT, INT, INT, INT) callconv(CALLBACK) BOOL;
-extern "gdi32" fn RoundRect(HDC, INT, INT, INT, INT, INT, INT) callconv(CALLBACK) BOOL;
-extern "gdi32" fn Ellipse(HDC, INT, INT, INT, INT) callconv(CALLBACK) BOOL;
-extern "gdi32" fn MoveToEx(HDC, INT, INT, ?*POINT) callconv(CALLBACK) BOOL;
-extern "gdi32" fn LineTo(HDC, INT, INT) callconv(CALLBACK) BOOL;
-extern "gdi32" fn GetStockObject(INT) callconv(CALLBACK) ?HGDIOBJ;
-extern "gdi32" fn CreateDIBSection(HDC, *const BITMAPINFO, UINT, *?*anyopaque, ?windows.HANDLE, DWORD) callconv(CALLBACK) ?HBITMAP;
-extern "gdi32" fn SetPixel(HDC, INT, INT, COLORREF) callconv(CALLBACK) COLORREF;
-extern "gdi32" fn CreateRoundRectRgn(INT, INT, INT, INT, INT, INT) callconv(CALLBACK) ?HRGN;
+extern "gdi32" fn CreateCompatibleDC(?HDC) callconv(WINAPI) ?HDC;
+extern "gdi32" fn CreateCompatibleBitmap(HDC, INT, INT) callconv(WINAPI) ?HBITMAP;
+extern "gdi32" fn SelectObject(HDC, *GdiHandle) callconv(WINAPI) ?HGDIOBJ;
+extern "gdi32" fn DeleteObject(*GdiHandle) callconv(WINAPI) BOOL;
+extern "gdi32" fn DeleteDC(HDC) callconv(WINAPI) BOOL;
+extern "gdi32" fn BitBlt(HDC, INT, INT, INT, INT, HDC, INT, INT, DWORD) callconv(WINAPI) BOOL;
+extern "gdi32" fn CreateSolidBrush(COLORREF) callconv(WINAPI) ?HBRUSH;
+extern "gdi32" fn CreatePen(INT, INT, COLORREF) callconv(WINAPI) ?HPEN;
+extern "gdi32" fn CreateFontIndirectA(*const LOGFONTA) callconv(WINAPI) ?HFONT;
+extern "gdi32" fn SetBkMode(HDC, INT) callconv(WINAPI) INT;
+extern "gdi32" fn SetTextColor(HDC, COLORREF) callconv(WINAPI) COLORREF;
+extern "gdi32" fn Rectangle(HDC, INT, INT, INT, INT) callconv(WINAPI) BOOL;
+extern "gdi32" fn RoundRect(HDC, INT, INT, INT, INT, INT, INT) callconv(WINAPI) BOOL;
+extern "gdi32" fn Ellipse(HDC, INT, INT, INT, INT) callconv(WINAPI) BOOL;
+extern "gdi32" fn MoveToEx(HDC, INT, INT, ?*POINT) callconv(WINAPI) BOOL;
+extern "gdi32" fn LineTo(HDC, INT, INT) callconv(WINAPI) BOOL;
+extern "gdi32" fn GetStockObject(INT) callconv(WINAPI) ?HGDIOBJ;
+extern "gdi32" fn CreateDIBSection(HDC, *const BITMAPINFO, UINT, *?*anyopaque, ?windows.HANDLE, DWORD) callconv(WINAPI) ?HBITMAP;
+extern "gdi32" fn SetPixel(HDC, INT, INT, COLORREF) callconv(WINAPI) COLORREF;
+extern "gdi32" fn CreateRoundRectRgn(INT, INT, INT, INT, INT, INT) callconv(WINAPI) ?HRGN;
 
-extern "msimg32" fn AlphaBlend(HDC, INT, INT, INT, INT, HDC, INT, INT, INT, INT, BLENDFUNCTION) callconv(CALLBACK) BOOL;
+extern "msimg32" fn AlphaBlend(HDC, INT, INT, INT, INT, HDC, INT, INT, INT, INT, BLENDFUNCTION) callconv(WINAPI) BOOL;
 
-extern "dwmapi" fn DwmExtendFrameIntoClientArea(HWND, *const MARGINS) callconv(CALLBACK) windows.HRESULT;
-extern "dwmapi" fn DwmSetWindowAttribute(HWND, DWORD, *const anyopaque, DWORD) callconv(CALLBACK) windows.HRESULT;
+extern "dwmapi" fn DwmExtendFrameIntoClientArea(HWND, *const MARGINS) callconv(WINAPI) windows.HRESULT;
+extern "dwmapi" fn DwmSetWindowAttribute(HWND, DWORD, *const anyopaque, DWORD) callconv(WINAPI) windows.HRESULT;
 
-extern "user32" fn SetWindowRgn(HWND, ?HRGN, BOOL) callconv(CALLBACK) INT;
+extern "user32" fn SetWindowRgn(HWND, ?HRGN, BOOL) callconv(WINAPI) INT;
 
 // ============================================================================
 // Helper Functions
@@ -425,7 +426,7 @@ const Theme = struct {
 // ============================================================================
 const WIN_WIDTH = 380;
 const WIN_HEIGHT = 520;
-const COMPACT_WIDTH = 320;
+const COMPACT_WIDTH = 380;
 const COMPACT_HEIGHT = 80;
 const CORNER_RADIUS = 20;
 const COMPACT_CORNER_RADIUS = 14;
@@ -688,7 +689,6 @@ fn renderUI(hdc: HDC, width: INT, height: INT) void {
         return;
     }
 
-    // Background
     fillRoundedRect(hdc, 0, 0, width, height, CORNER_RADIUS, Theme.bg_primary);
     drawRoundedBorder(hdc, 0, 0, width, height, CORNER_RADIUS, Theme.border_subtle);
 
@@ -734,25 +734,22 @@ fn renderUI(hdc: HDC, width: INT, height: INT) void {
         drawRoundedBorder(hdc, PADDING, y_offset, width - PADDING * 2, 100, CARD_RADIUS, Theme.border_subtle);
 
         const card_x = PADDING + CARD_PADDING;
-        drawText(hdc, "CURSOR POSITION", card_x, y_offset + 5, 200, 16, Theme.text_muted, font_small, DT_LEFT | DT_SINGLELINE);
+        drawText(hdc, "CURSOR POSITION", card_x, y_offset + 10, 200, 16, Theme.text_muted, font_small, DT_LEFT | DT_SINGLELINE);
 
-        // X coordinate
         {
             var buf: [32]u8 = undefined;
             const x_val = if (g_coords_locked) g_locked_x else g_mouse_x;
-            const text = formatCoord(&buf, "X ", x_val);
+            const text = formatCoord(&buf, "X  ", x_val);
             drawText(hdc, text, card_x, y_offset + 32, 160, 36, Theme.accent_cyan, font_large, DT_LEFT | DT_SINGLELINE);
         }
 
-        // Y coordinate
         {
             var buf: [32]u8 = undefined;
             const y_val = if (g_coords_locked) g_locked_y else g_mouse_y;
-            const text = formatCoord(&buf, "Y ", y_val);
+            const text = formatCoord(&buf, "Y  ", y_val);
             drawText(hdc, text, card_x + 160, y_offset + 32, 160, 36, Theme.accent_purple, font_large, DT_LEFT | DT_SINGLELINE);
         }
 
-        // Percentage
         {
             var buf_x: [16]u8 = undefined;
             var buf_y: [16]u8 = undefined;
@@ -799,7 +796,6 @@ fn renderUI(hdc: HDC, width: INT, height: INT) void {
         const range_x = @max(max_x - min_x, 1);
         const range_y = @max(max_y - min_y, 1);
 
-        // X sparkline
         {
             var prev_px: INT = 0;
             var prev_py: INT = 0;
@@ -816,7 +812,6 @@ fn renderUI(hdc: HDC, width: INT, height: INT) void {
             }
         }
 
-        // Y sparkline
         const chart_y2 = chart_y + chart_h + 14;
         {
             var prev_px: INT = 0;
@@ -834,7 +829,6 @@ fn renderUI(hdc: HDC, width: INT, height: INT) void {
             }
         }
 
-        // Legend
         drawCircle(hdc, card_x + chart_w - 50, y_offset + 12, 3, Theme.accent_cyan);
         drawText(hdc, "X", card_x + chart_w - 44, y_offset + 6, 14, 16, Theme.accent_cyan, font_small, DT_LEFT | DT_SINGLELINE);
         drawCircle(hdc, card_x + chart_w - 25, y_offset + 12, 3, Theme.accent_purple);
@@ -848,7 +842,6 @@ fn renderUI(hdc: HDC, width: INT, height: INT) void {
         y_offset += 8;
         const card_w_half = @divTrunc(width - PADDING * 2 - 8, 2);
 
-        // Screen Resolution
         {
             fillRoundedRect(hdc, PADDING, y_offset, card_w_half, 80, CARD_RADIUS, Theme.bg_secondary);
             drawRoundedBorder(hdc, PADDING, y_offset, card_w_half, 80, CARD_RADIUS, Theme.border_subtle);
@@ -861,7 +854,6 @@ fn renderUI(hdc: HDC, width: INT, height: INT) void {
             drawText(hdc, "Logical", PADDING + CARD_PADDING, y_offset + 54, 80, 14, Theme.text_muted, font_small, DT_LEFT | DT_SINGLELINE);
         }
 
-        // Physical Resolution
         {
             const x2 = PADDING + card_w_half + 8;
             fillRoundedRect(hdc, x2, y_offset, card_w_half, 80, CARD_RADIUS, Theme.bg_secondary);
@@ -886,7 +878,6 @@ fn renderUI(hdc: HDC, width: INT, height: INT) void {
         const card_x = PADDING + CARD_PADDING;
         const bar_w = width - PADDING * 2 - CARD_PADDING * 2;
 
-        // X progress bar
         {
             drawText(hdc, "X", card_x, y_offset + 10, 20, 14, Theme.accent_cyan, font_small, DT_LEFT | DT_SINGLELINE);
             const bar_x = card_x + 22;
@@ -898,7 +889,6 @@ fn renderUI(hdc: HDC, width: INT, height: INT) void {
             }
         }
 
-        // Y progress bar
         {
             drawText(hdc, "Y", card_x, y_offset + 44, 20, 14, Theme.accent_purple, font_small, DT_LEFT | DT_SINGLELINE);
             const bar_x = card_x + 22;
@@ -921,7 +911,6 @@ fn renderUI(hdc: HDC, width: INT, height: INT) void {
         const status_text = if (g_coords_locked) "已锁定 (Space解锁)" else "Tracking active";
         drawText(hdc, status_text, PADDING + 18, y_offset, 250, 16, Theme.text_muted, font_small, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
 
-        // Copy indicator
         if (g_last_copy_time < 30) {
             const indicator_color = if (g_copy_success) Theme.accent_green else Theme.accent_orange;
             const copy_text = if (g_copy_success) "已复制!" else "复制失败";
@@ -951,7 +940,6 @@ fn renderUICompact(hdc: HDC, width: INT, height: INT) void {
 
     const margin: INT = PADDING;
 
-    // Close button (top right)
     {
         const close_color = if (g_hover_close) Theme.accent_pink else Theme.text_muted;
         if (g_hover_close) {
@@ -960,13 +948,11 @@ fn renderUICompact(hdc: HDC, width: INT, height: INT) void {
         drawText(hdc, "\xc3\x97", width - margin - 20, 4, 16, 16, close_color, font_icon, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
     }
 
-    // Lock indicator dot
     {
         const dot_color = if (g_coords_locked) RGB(255, 100, 100) else Theme.dot_active;
         drawCircle(hdc, margin + 4, 14, 3, dot_color);
     }
 
-    // Coordinates - same layout as full mode (X left, Y right)
     const x_val = if (g_coords_locked) g_locked_x else g_mouse_x;
     const y_val = if (g_coords_locked) g_locked_y else g_mouse_y;
     const card_x = margin + CARD_PADDING;
@@ -982,7 +968,6 @@ fn renderUICompact(hdc: HDC, width: INT, height: INT) void {
         drawText(hdc, text, card_x + 160, 28, 160, 36, Theme.accent_purple, font_large, DT_LEFT | DT_SINGLELINE);
     }
 
-    // Copy indicator at bottom right
     if (g_last_copy_time < 30) {
         const indicator_color = if (g_copy_success) Theme.accent_green else Theme.accent_orange;
         const status_text = if (g_copy_success) "已复制!" else "复制失败";
@@ -993,7 +978,7 @@ fn renderUICompact(hdc: HDC, width: INT, height: INT) void {
 // ============================================================================
 // Window Procedure
 // ============================================================================
-fn windowProc(hwnd: HWND, uMsg: UINT, wParam: WPARAM, lParam: LPARAM) callconv(CALLBACK) LRESULT {
+fn windowProc(hwnd: HWND, uMsg: UINT, wParam: WPARAM, lParam: LPARAM) callconv(WINAPI) LRESULT {
     switch (uMsg) {
         WM_CREATE => {
             g_main_hwnd = hwnd;
@@ -1017,7 +1002,6 @@ fn windowProc(hwnd: HWND, uMsg: UINT, wParam: WPARAM, lParam: LPARAM) callconv(C
                 _ = platform.createTrayIcon(hwnd, raw_icon, "Mouse Tracker");
             }
 
-            // Register global hotkey: Ctrl+H for toggle visibility
             _ = RegisterHotKey(hwnd, HOTKEY_ID_TOGGLE_VISIBLE, MOD_CONTROL | MOD_NOREPEAT, 'H');
 
             _ = SetTimer(hwnd, 1, 50, null);
@@ -1040,7 +1024,6 @@ fn windowProc(hwnd: HWND, uMsg: UINT, wParam: WPARAM, lParam: LPARAM) callconv(C
                 g_last_copy_time += 1;
             }
 
-            // Follow mouse
             if (g_follow_window) {
                 const cur_w: INT = if (g_is_compact_mode) COMPACT_WIDTH else WIN_WIDTH;
                 const cur_h: INT = if (g_is_compact_mode) COMPACT_HEIGHT else WIN_HEIGHT;
@@ -1184,19 +1167,16 @@ fn windowProc(hwnd: HWND, uMsg: UINT, wParam: WPARAM, lParam: LPARAM) callconv(C
                 _ = InvalidateRect(hwnd, null, 0);
                 return 0;
             }
-            // C: copy coordinates
             if (wParam == 'C') {
                 copyCurrentCoordinatesToClipboard();
                 _ = InvalidateRect(hwnd, null, 0);
                 return 0;
             }
-            // Ctrl+M: toggle compact mode
             if (wParam == 'M' and isCtrlDown()) {
                 toggleCompactMode();
                 _ = InvalidateRect(hwnd, null, 0);
                 return 0;
             }
-            // F: toggle follow mode
             if (wParam == 'F') {
                 g_follow_window = !g_follow_window;
                 _ = InvalidateRect(hwnd, null, 0);
@@ -1268,7 +1248,7 @@ fn windowProc(hwnd: HWND, uMsg: UINT, wParam: WPARAM, lParam: LPARAM) callconv(C
 // ============================================================================
 // Entry Point
 // ============================================================================
-pub export fn wWinMain(hInstance: HINSTANCE, _: ?HINSTANCE, _: ?[*:0]u16, _: INT) INT {
+pub export fn wWinMain(hInstance: HINSTANCE, _: ?HINSTANCE, _: ?[*:0]u16, _: INT) callconv(WINAPI) INT {
     return wWinMainImpl(hInstance);
 }
 
